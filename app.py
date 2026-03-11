@@ -11,27 +11,19 @@ load_dotenv()
 
 # ── ADD THE FUNCTION RIGHT HERE ──────────────────────────────
 def show_billing_error():
-    st.error("""
-**Your credit balance is too low and needs to be topped up.** Please contact the app owner or follow the steps below:
-
-**Step 1 — Go to Anthropic Console**
-👉 https://console.anthropic.com
-
-**Step 2 — Add Credits**
-- Click **'Settings'** in the left sidebar
-- Click **'Billing'**
-- Click **'Add Credits'**
-- Add $5–10 to start — that's plenty for portfolio testing
-- Script coverage runs cost roughly $0.02–0.05 per analysis with Claude
-- $10 = ~200–500 test runs
-""")
-
-# ── Page Config (already in your file) ───────────────────────
-st.set_page_config(
-    page_title="Production Asset Intelligence",
-    ...
-)
-
+    st.error(
+        "**Your credit balance is too low and needs to be topped up.** "
+        "Please contact the app owner or follow the steps below:\n\n"
+        "**Step 1 — Go to Anthropic Console**\n"
+        "👉 https://console.anthropic.com\n\n"
+        "**Step 2 — Add Credits**\n"
+        "- Click **Settings** in the left sidebar\n"
+        "- Click **Billing**\n"
+        "- Click **Add Credits**\n"
+        "- Add $5–10 to start — that's plenty for portfolio testing\n"
+        "- Script coverage runs cost roughly $0.02–0.05 per analysis with Claude\n"
+        "- $10 = ~200–500 test runs"
+    )
 # ── Page Config ──────────────────────────────────────────────
 st.set_page_config(
     page_title="Production Asset Intelligence",
