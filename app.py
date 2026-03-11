@@ -9,6 +9,29 @@ from datetime import datetime
 
 load_dotenv()
 
+# ── ADD THE FUNCTION RIGHT HERE ──────────────────────────────
+def show_billing_error():
+    st.error("""
+**Your credit balance is too low and needs to be topped up.** Please contact the app owner or follow the steps below:
+
+**Step 1 — Go to Anthropic Console**
+👉 https://console.anthropic.com
+
+**Step 2 — Add Credits**
+- Click **'Settings'** in the left sidebar
+- Click **'Billing'**
+- Click **'Add Credits'**
+- Add $5–10 to start — that's plenty for portfolio testing
+- Script coverage runs cost roughly $0.02–0.05 per analysis with Claude
+- $10 = ~200–500 test runs
+""")
+
+# ── Page Config (already in your file) ───────────────────────
+st.set_page_config(
+    page_title="Production Asset Intelligence",
+    ...
+)
+
 # ── Page Config ──────────────────────────────────────────────
 st.set_page_config(
     page_title="Production Asset Intelligence",
@@ -81,12 +104,17 @@ Asset Request:
 
 Be concise, practical, and production-aware. Use film industry terminology."""
 
-    response = client.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=600,
-        messages=[{"role": "user", "content": prompt}]
-    )
-    return response.content[0].text
+    try:
+        response = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=600,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return response.content[0].text
+    except Exception as e:
+        if "credit" in str(e).lower() or "billing" in str(e).lower() or "402" in str(e) or "authentication" in str(e).lower():
+            return None  # signals billing error
+        raise e
 
 def chat_with_ai(messages, user_message, df_context):
     system_prompt = f"""You are PAI Assistant — an AI for a Hollywood studio's Production Asset Intelligence system.
@@ -107,13 +135,18 @@ Be helpful, concise, and use film industry knowledge."""
     messages_for_api = [{"role": m["role"], "content": m["content"]} for m in messages]
     messages_for_api.append({"role": "user", "content": user_message})
 
-    response = client.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=500,
-        system=system_prompt,
-        messages=messages_for_api
-    )
-    return response.content[0].text
+    try:
+        response = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=500,
+            system=system_prompt,
+            messages=messages_for_api
+        )
+        return response.content[0].text
+    except Exception as e:
+        if "credit" in str(e).lower() or "billing" in str(e).lower() or "402" in str(e) or "authentication" in str(e).lower():
+            return None  # signals billing error
+        raise e
 
 # ── Header ───────────────────────────────────────────────────
 st.markdown("""
@@ -242,8 +275,11 @@ with tab3:
         st.markdown("### 🤖 AI Triage Analysis")
         with st.spinner("Analyzing your request..."):
             analysis = analyze_asset_request(title, category, department, priority, description)
-        st.markdown(analysis)
-        st.success("✅ Request submitted! AI analysis complete.")
+        if analysis is None:
+            show_billing_error()
+        else:
+            st.markdown(analysis)
+            st.success("✅ Request submitted! AI analysis complete.")
 
 # ══════════════════════════════════════════
 # TAB 4: PAI ASSISTANT
@@ -269,8 +305,11 @@ with tab4:
         with st.chat_message("assistant"):
             with st.spinner("PAI thinking..."):
                 reply = chat_with_ai(st.session_state.chat_history[:-1], user_input, df)
-            st.markdown(reply)
-        st.session_state.chat_history.append({"role": "assistant", "content": reply})
+            if reply is None:
+                show_billing_error()
+            else:
+                st.markdown(reply)
+                st.session_state.chat_history.append({"role": "assistant", "content": reply})
 
 # ── Footer ────────────────────────────────────────────────────
 st.markdown("""
