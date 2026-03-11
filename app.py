@@ -58,7 +58,9 @@ def load_data():
 df = load_data()
 
 # ── Anthropic Client ─────────────────────────────────────────
-client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+import streamlit as st
+api_key = st.secrets.get("ANTHROPIC_API_KEY") or os.getenv("ANTHROPIC_API_KEY")
+client = anthropic.Anthropic(api_key=api_key)
 
 def analyze_asset_request(title, category, department, priority, description):
     prompt = f"""You are an AI assistant for a major Hollywood studio's production asset management system.
